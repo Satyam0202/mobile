@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#82b7b8">
+    <title>Nearby Share — Open a local share</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --teal: #82b7b8;
+        --cream: #f7f1e8;
+        --olive: #555b32;
+        --lime: #d8fb78;
+        --muted: #77776b;
+        --line: #e8dfd1;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        min-height: 100vh;
+        margin: 0;
+        background: var(--teal);
+        color: var(--olive);
+        font: 16px/1.5 Inter, ui-rounded, system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+      main { width: min(100% - 32px, 930px); margin: 0 auto; padding: 28px 0 42px; }
+      header { display:flex; align-items:center; gap:12px; margin-bottom:22px; font-size:13px; font-weight:900; letter-spacing:.14em; }
+      .mark { display:grid; place-items:center; width:42px; height:42px; border-radius:50%; background:var(--lime); font-size:23px; letter-spacing:0; }
+      .layout { display:grid; grid-template-columns: minmax(0, 1fr) 260px; gap:18px; align-items:stretch; }
+      .card { padding:clamp(22px, 5vw, 40px); border-radius:34px; background:var(--cream); }
+      .eyebrow { color:var(--muted); font-size:11px; font-weight:900; letter-spacing:.16em; }
+      h1 { margin:16px 0 10px; font-size:clamp(37px, 7vw, 64px); line-height:.97; letter-spacing:-.055em; }
+      p { color:var(--muted); }
+      .pet { display:grid; place-items:center; min-height:260px; overflow:hidden; background:var(--cream); }
+      .pet-figure { position:relative; display:grid; place-items:center; width:160px; height:190px; border-radius:48% 48% 42% 42%; background:#d9cef0; transform:rotate(-5deg); }
+      .pet-figure::before { position:absolute; top:-20px; left:23px; width:50px; height:75px; border-radius:60% 40% 55% 40%; background:#c5b2e3; content:""; transform:rotate(-25deg); }
+      .pet-figure::after { position:absolute; top:-20px; right:22px; width:48px; height:70px; border-radius:40% 60% 40% 55%; background:#c5b2e3; content:""; transform:rotate(25deg); }
+      .pet-face { position:relative; z-index:1; margin-top:-24px; font-size:64px; }
+      .form { display:flex; gap:9px; flex-wrap:wrap; margin-top:22px; }
+      input { flex:1 1 270px; min-width:0; padding:15px 16px; border:1px solid var(--line); border-radius:16px; background:#fffdf9; color:var(--olive); font:inherit; }
+      input:focus { outline:3px solid #d8fb78; }
+      button { padding:14px 19px; border:0; border-radius:16px; background:var(--lime); color:var(--olive); font:inherit; font-weight:900; cursor:pointer; }
+      button:hover { filter:brightness(.97); }
+      .error { min-height:24px; color:#963f32; font-size:13px; }
+      .steps { display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-top:16px; }
+      .step { padding:17px; border:1px solid #ffffff50; border-radius:22px; background:#ffffff31; }
+      .step b { display:block; margin-bottom:5px; font-size:11px; letter-spacing:.12em; }
+      .step span { color:#405044; font-size:13px; }
+      .notice { margin:15px 4px 0; color:#405044; font-size:12px; }
+      @media (max-width:680px) {
+        main { padding-top:18px; }
+        .layout { grid-template-columns:1fr; }
+        .pet { min-height:155px; }
+        .pet-figure { width:112px; height:132px; }
+        .pet-face { font-size:46px; }
+        .pet-figure::before,.pet-figure::after { top:-15px; width:36px; height:54px; }
+        .steps { grid-template-columns:1fr; gap:8px; }
+        .step { padding:13px 15px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header><span class="mark" aria-hidden="true">🐾</span> NEARBY SHARE</header>
+      <div class="layout">
+        <section class="card">
+          <div class="eyebrow">PRIVATE · SAME WI-FI OR HOTSPOT</div>
+          <h1>Share a little.<br>Stay nearby.</h1>
+          <p>Open the Nearby Share app on the other phone and tap <b>Start sharing</b>. Enter the address shown there to open its transfer page in this browser.</p>
+          <form id="connectForm" class="form">
+            <input id="host" type="text" inputmode="url" autocomplete="url" placeholder="http://192.168.1.12:8082" aria-label="Sharing phone address" required>
+            <button type="submit">Open local share</button>
+          </form>
+          <div id="error" class="error" role="status"></div>
+          <p class="notice">You will be redirected to the sharing phone on your local network. Enter its temporary PIN on the next screen. This site does not upload your files to a cloud server.</p>
+        </section>
+        <aside class="card pet" aria-label="Friendly pet illustration">
+          <div class="pet-figure"><span class="pet-face" aria-hidden="true">🐱</span></div>
+        </aside>
+      </div>
+      <section class="steps" aria-label="How it works">
+        <div class="step"><b>01 · CONNECT</b><span>Join the same Wi-Fi or phone hotspot.</span></div>
+        <div class="step"><b>02 · ADDRESS</b><span>Type the address shown in the sharing app.</span></div>
+        <div class="step"><b>03 · PAIR</b><span>Enter the temporary PIN and transfer.</span></div>
+      </section>
+    </main>
+    <script>
+      const form = document.getElementById('connectForm');
+      const field = document.getElementById('host');
+      const error = document.getElementById('error');
+
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        error.textContent = '';
+        let value = field.value.trim();
+        if (!value) {
+          error.textContent = 'Enter the address shown in the sharing app.';
+          return;
+        }
+        if (!/^https?:\/\//i.test(value)) value = `http://${value}`;
+        let address;
+        try {
+          address = new URL(value);
+        } catch {
+          error.textContent = 'Enter a valid address, such as http://192.168.1.12:8082.';
+          return;
+        }
+        if (
+          address.protocol !== 'http:' ||
+          !address.hostname ||
+          address.username ||
+          address.password ||
+          (address.pathname !== '/' && address.pathname !== '') ||
+          address.search ||
+          address.hash
+        ) {
+          error.textContent = 'Use the local HTTP address shown in the app.';
+          return;
+        }
+        window.location.assign(address.origin);
+      });
+    </script>
+  </body>
+</html>
